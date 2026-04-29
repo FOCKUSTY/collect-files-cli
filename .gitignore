@@ -1,0 +1,25 @@
+# Зависимости
+node_modules/
+
+# Результат компиляции
+dist/
+
+# Логи
+*.log
+npm-debug.log*
+
+# Выходные файлы (на всякий случай)
+data.txt
+lore.txt
+
+# Файлы окружения
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Системные файлы macOS
+.DS_Store
+Thumbs.db
