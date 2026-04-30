@@ -13,7 +13,7 @@ npm install -g collect-files-cli
 
 ```bash
 git clone https://github.com/fockusty/collect-files-cli.git
-cd cf-cli
+cd collect-files-cli
 npm install
 npm run build
 npm link
@@ -30,7 +30,7 @@ cf [директория] [опции]
 ### Опции
 
 | Параметр | Краткий | Описание |
-|----------|---------|----------|
+| -------- | ------- | -------- |
 | `--output` | `-o` | Путь к выходному файлу (по умолчанию `data.txt` в корне обхода) |
 | `--ignore` | `-i` | Дополнительные папки/файлы через запятую (к стандартным игнорируемым) |
 | `--concurrency` | `-c` | Максимум одновременных чтений (по умолчанию `10`) |
@@ -49,6 +49,7 @@ cf ./src --ignore logs,tests --output snapshot.md
 
 # Включить бинарные файлы и отключить прогресс
 cf . --include-binary --no-progress -o full-dump.txt
+cf . -ib -np -o full-dump.txt
 ```
 
 ## Стандартно игнорируемые имена
