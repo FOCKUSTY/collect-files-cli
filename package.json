@@ -1,6 +1,6 @@
 {
   "name": "collect-files-cli",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Рекурсивно собирает содержимое файлов в один текстовый файл",
   "type": "module",
   "main": "./dist/index.js",
@@ -28,5 +28,9 @@
   "license": "MIT",
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "typescript": "^6.0.3"
   }
 }
