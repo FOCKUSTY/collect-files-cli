@@ -15,6 +15,10 @@
     "email": "viserd.yt@gmail.com",
     "url": "https://fockusty.vercel.app"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FOCKUSTY/collect-files-cli"
+  },
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
