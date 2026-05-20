@@ -1,6 +1,6 @@
-import { ROOT_DIRECTORY, WORKING_DIRECTORY } from './constants.js';
-import { resolve } from 'path';
-import { IgnoreConfig } from './ignore-config.js';
+import { ROOT_DIRECTORY, WORKING_DIRECTORY } from "./constants.js";
+import { resolve } from "path";
+import { IgnoreConfig } from "./ignore-config.js";
 
 export interface CliOptions {
   rootDir: string;
@@ -18,7 +18,7 @@ export class CliOptionsParser {
   public static parse(argv: string[]): CliOptions {
     const args = argv.slice(2);
     const ignore: string[] = [];
-    
+
     let rootDir = WORKING_DIRECTORY;
     let output: string | null = null;
     let concurrency = 10;
@@ -31,41 +31,41 @@ export class CliOptionsParser {
       const nextArgument = args[i + 1];
 
       switch (currentArgument) {
-        case '--output':
-        case '-o':
+        case "--output":
+        case "-o":
           output = nextArgument;
           i++;
           break;
 
-        case '--ignore':
-        case '-i':
-          ignore.push(...nextArgument.split(',').map(part => part.trim()));
+        case "--ignore":
+        case "-i":
+          ignore.push(...nextArgument.split(",").map((part) => part.trim()));
           i++;
           break;
 
-        case '--concurrency':
-        case '-c':
+        case "--concurrency":
+        case "-c":
           concurrency = parseInt(nextArgument, 10) || 10;
           i++;
           break;
 
-        case '--include-binary':
-        case '-ib':
+        case "--include-binary":
+        case "-ib":
           includeBinary = true;
           break;
 
-        case '--no-progress':
-        case '-np':
+        case "--no-progress":
+        case "-np":
           showProgress = false;
           break;
 
-        case '--help':
-        case '-h':
+        case "--help":
+        case "-h":
           CliOptionsParser.showHelp();
           process.exit(0);
 
         default:
-          if (currentArgument.startsWith('-')) {
+          if (currentArgument.startsWith("-")) {
             break;
           }
 
@@ -86,7 +86,7 @@ export class CliOptionsParser {
       concurrency,
       includeBinary,
       showProgress,
-      configDir: configDir
+      configDir: configDir,
     };
   }
 

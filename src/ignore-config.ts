@@ -1,17 +1,21 @@
 import { readFile, writeFile } from "fs/promises";
 import { join } from "path";
-import { DEFAULT_IGNORE_CONFIG, ROOT_DIRECTORY, WORKING_DIRECTORY } from "./constants.js";
+import {
+  DEFAULT_IGNORE_CONFIG,
+  ROOT_DIRECTORY,
+  WORKING_DIRECTORY,
+} from "./constants.js";
 import { readdirSync, writeFileSync } from "fs";
 
 export type IgnorePatternConfig = {
   isNegative: boolean;
   isDirectory: boolean;
-}
+};
 
 export type IgnorePattern = IgnorePatternConfig & {
   pattern: string;
-  regex: RegExp
-}
+  regex: RegExp;
+};
 
 export class IgnoreConfig {
   private static readonly FILE_NAME = ".collectignore";
@@ -19,14 +23,14 @@ export class IgnoreConfig {
     COMMENT: "#",
     NEGATIVE: "!",
     DIRECTORY: "/",
-    SPLIT: /\r?\n/
+    SPLIT: /\r?\n/,
   } as const;
 
   private readonly _dirPath: string;
   private readonly _ignore: Set<string>;
 
   public static getConfigPathSync(): string {
-    const dir = readdirSync(WORKING_DIRECTORY)
+    const dir = readdirSync(WORKING_DIRECTORY);
     if (dir.includes(IgnoreConfig.FILE_NAME)) {
       return WORKING_DIRECTORY;
     }
@@ -66,22 +70,19 @@ export class IgnoreConfig {
       }
 
       if (pattern.isNegative) {
-        console.log({pattern, path});
+        console.log({ pattern, path });
         break;
       }
 
       ignored = true;
       break;
-    };
+    }
 
     return ignored;
   }
 
   private resolveIgnore(ignore: string[]) {
-    return Array.from(new Set([
-      ...ignore,
-      ...this._ignore
-    ]));
+    return Array.from(new Set([...ignore, ...this._ignore]));
   }
 
   private async read(): Promise<string[]> {
@@ -112,8 +113,8 @@ export class IgnoreConfig {
       let pattern = value.trim();
       const config: IgnorePatternConfig = {
         isNegative: false,
-        isDirectory: false
-      }
+        isDirectory: false,
+      };
 
       if (pattern.startsWith(IgnoreConfig.SYMBOLS.NEGATIVE)) {
         config.isNegative = true;
@@ -129,18 +130,18 @@ export class IgnoreConfig {
         pattern,
         regex: this.patternToRegex(pattern),
         ...config,
-      }
+      };
     });
   }
 
   private patternToRegex(pattern: string): RegExp {
     let regexPattern = pattern
-      .replace(/[.+^${}()|[\]\\]/g, '\\$&')
-      .replace(/\*\*/g, '{{GLOBSTAR}}')
-      .replace(/\*/g, '[^/]*')
-      .replace(/\?/g, '[^/]')
-      .replace(/\{\{GLOBSTAR\}\}/g, '.*');
-    
+      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
+      .replace(/\*\*/g, "{{GLOBSTAR}}")
+      .replace(/\*/g, "[^/]*")
+      .replace(/\?/g, "[^/]")
+      .replace(/\{\{GLOBSTAR\}\}/g, ".*");
+
     regexPattern = (() => {
       if (pattern.startsWith(IgnoreConfig.SYMBOLS.DIRECTORY)) {
         return `^${regexPattern.slice(1)}`;
@@ -148,13 +149,13 @@ export class IgnoreConfig {
 
       return `(^|/)${regexPattern}`;
     })();
-    
+
     if (pattern.endsWith(IgnoreConfig.SYMBOLS.DIRECTORY)) {
       regexPattern += IgnoreConfig.SYMBOLS.DIRECTORY;
     }
-    
-    regexPattern += '($|/)';
-    
+
+    regexPattern += "($|/)";
+
     return new RegExp(regexPattern);
   }
 }

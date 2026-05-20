@@ -24,8 +24,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key:
-            npm-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          key: npm-${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             npm-${{ runner.os }}-node-
 

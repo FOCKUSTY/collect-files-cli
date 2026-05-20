@@ -1,9 +1,9 @@
-import type { CliOptions } from './cli-options.js';
+import type { CliOptions } from "./cli-options.js";
 
-import { readdir, open, readFile, writeFile } from 'fs/promises';
-import { join, extname } from 'path';
-import { existsSync } from 'fs';
-import { IgnoreConfig } from './ignore-config.js';
+import { readdir, open, readFile, writeFile } from "fs/promises";
+import { join, extname } from "path";
+import { existsSync } from "fs";
+import { IgnoreConfig } from "./ignore-config.js";
 
 interface FileData {
   filePath: string;
@@ -67,7 +67,9 @@ export class FileCollector {
         return readdir(this.rootDir, { withFileTypes: true, recursive: true });
       } catch (error) {
         if (this.showProgress) {
-          console.error(`⚠️  Не удалось прочитать директорию ${this.rootDir}: ${(error as Error).message}`);
+          console.error(
+            `⚠️  Не удалось прочитать директорию ${this.rootDir}: ${(error as Error).message}`,
+          );
         }
 
         return [];
@@ -78,7 +80,7 @@ export class FileCollector {
       if (!entry.isFile()) {
         continue;
       }
-      
+
       const path = join(entry.parentPath, entry.name);
       files.push(path);
     }
@@ -102,7 +104,7 @@ export class FileCollector {
       if (!data) {
         return;
       }
-      
+
       results.push(data);
     };
 
@@ -114,7 +116,7 @@ export class FileCollector {
         await promise;
         continue;
       }
-      
+
       const trackedPromise = promise.then(() => {
         executing.delete(trackedPromise);
       });
@@ -128,7 +130,7 @@ export class FileCollector {
     }
 
     await Promise.all(executing);
-    
+
     return results;
   }
 
@@ -153,7 +155,9 @@ export class FileCollector {
       return { filePath, extension, content, binary };
     } catch (error) {
       if (this.showProgress) {
-        console.error(`⚠️  Ошибка чтения ${filePath}: ${(error as Error).message}`);
+        console.error(
+          `⚠️  Ошибка чтения ${filePath}: ${(error as Error).message}`,
+        );
       }
 
       return null;
@@ -162,7 +166,7 @@ export class FileCollector {
 
   private async isBinaryFile(filePath: string): Promise<boolean> {
     try {
-      const fileDescriptor = await open(filePath, 'r');
+      const fileDescriptor = await open(filePath, "r");
 
       const buffer = Buffer.alloc(1024);
       const { bytesRead } = await fileDescriptor.read(buffer, 0, 1024, 0);
@@ -182,9 +186,9 @@ export class FileCollector {
   }
 
   private formatOutput(contents: FileData[]): string {
-    let text = '';
+    let text = "";
     for (const item of contents) {
-      const binaryLabel = item.binary ? ' (binary base64)' : '';
+      const binaryLabel = item.binary ? " (binary base64)" : "";
       text += `\n\`${item.filePath}\`${binaryLabel}\n\`\`\`${item.extension}\n${item.content}\n\`\`\``;
     }
 
@@ -192,6 +196,6 @@ export class FileCollector {
   }
 
   private writeOutput(text: string): Promise<void> {
-    return writeFile(this.output, text, 'utf-8');
+    return writeFile(this.output, text, "utf-8");
   }
 }
