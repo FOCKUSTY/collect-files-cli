@@ -1,7 +1,10 @@
+import { ROOT_DIRECTORY, WORKING_DIRECTORY } from './constants.js';
 import { resolve } from 'path';
+import { IgnoreConfig } from './ignore-config.js';
 
 export interface CliOptions {
   rootDir: string;
+  configDir: string;
   output: string;
   ignore: string[];
   concurrency: number;
@@ -16,11 +19,12 @@ export class CliOptionsParser {
     const args = argv.slice(2);
     const ignore: string[] = [];
     
-    let rootDir = process.cwd();
+    let rootDir = WORKING_DIRECTORY;
     let output: string | null = null;
     let concurrency = 10;
     let includeBinary = false;
     let showProgress = true;
+    let configDir: string = IgnoreConfig.getConfigPathSync();
 
     for (let i = 0; i < args.length; i++) {
       const currentArgument = args[i];
@@ -61,9 +65,17 @@ export class CliOptionsParser {
           process.exit(0);
 
         default:
-          if (!currentArgument.startsWith('-')) {
-            rootDir = resolve(currentArgument);
+          if (currentArgument.startsWith('-')) {
+            break;
           }
+
+          if (currentArgument === "config") {
+            IgnoreConfig.createSync(WORKING_DIRECTORY);
+            process.exit(0);
+          }
+
+          rootDir = resolve(currentArgument);
+          break;
       }
     }
 
@@ -74,22 +86,27 @@ export class CliOptionsParser {
       concurrency,
       includeBinary,
       showProgress,
+      configDir: configDir
     };
   }
 
   private static showHelp(): void {
     console.log(`
-Использование: cf [директория] [опции]
+Использование: cf [директория|команда] [опции]
 
 Собирает содержимое всех файлов (кроме игнорируемых) в один текстовый файл.
 
+Команды:
+  config                     Создаёт конфиг в рабочей папке
+
 Параметры:
-  --output, -o <файл>       Путь к выходному файлу (по умолчанию data.txt в корне обхода)
-  --ignore, -i <список>     Исключить папки/файлы через запятую (дополнительно к стандартным)
-  --concurrency, -c <число> Максимум одновременных чтений (по умолчанию 10)
-  --include-binary, -ib     Включать бинарные файлы в base64
-  --no-progress, -np        Отключить прогресс-вывод
-  --help, -h                Эта справка
+  --output, -o <файл>        Путь к выходному файлу (по умолчанию data.txt в корне обхода)
+  --ignore, -i <список>      Исключить папки/файлы через запятую (дополнительно к стандартным)
+  --concurrency, -c <число>  Максимум одновременных чтений (по умолчанию 10)
+  --config, -cfg             Создаёт конфиг в рабочей директории
+  --include-binary, -ib      Включать бинарные файлы в base64
+  --no-progress, -np         Отключить прогресс-вывод
+  --help, -h                 Эта справка
 `);
   }
 }

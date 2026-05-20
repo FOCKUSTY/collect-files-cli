@@ -1,8 +1,9 @@
 import type { CliOptions } from './cli-options.js';
 
 import { readdir, open, readFile, writeFile } from 'fs/promises';
-import { join, extname, relative, sep } from 'path';
+import { join, extname } from 'path';
 import { existsSync } from 'fs';
+import { IgnoreConfig } from './ignore-config.js';
 
 interface FileData {
   filePath: string;
@@ -12,44 +13,36 @@ interface FileData {
 }
 
 export class FileCollector {
-  private static readonly DEFAULT_IGNORES: string[] = [
-    'node_modules', '.git', '.idea', '.vscode', 'dist', 'build',
-    '.DS_Store', 'Thumbs.db', 'package-lock.json', 'yarn.lock',
-  ];
-
   private readonly rootDir: string;
   private readonly output: string;
-  private readonly ignore: Set<string>;
   private readonly concurrency: number;
   private readonly includeBinary: boolean;
   private readonly showProgress: boolean;
+  private readonly ignoreConfig: IgnoreConfig;
 
   public constructor(options: CliOptions) {
     this.rootDir = options.rootDir;
     this.output = options.output;
-
-    this.ignore = new Set([
-      ...FileCollector.DEFAULT_IGNORES,
-      ...options.ignore,
-    ]);
+    this.ignoreConfig = new IgnoreConfig(options.configDir, options.ignore);
 
     this.concurrency = options.concurrency;
     this.includeBinary = options.includeBinary;
     this.showProgress = options.showProgress;
   }
 
-  async execute(): Promise<void> {
+  public async execute(): Promise<void> {
     this.validateDirectory();
     if (this.showProgress) {
       console.log(`🔍 Сканируем: ${this.rootDir}`);
     }
 
-    const fileList = await this.collectFilePaths();
+    const files = await this.collectFilePaths();
+    const filterdFiles = await this.filterFiles(files);
     if (this.showProgress) {
-      console.log(`📁 Найдено ${fileList.length} файлов. Читаем...`);
+      console.log(`📁 Найдено ${filterdFiles.length} файлов. Читаем...`);
     }
 
-    const contents = await this.readFilesWithLimit(fileList);
+    const contents = await this.readFilesWithLimit(filterdFiles);
     const outputText = this.formatOutput(contents);
 
     await this.writeOutput(outputText);
@@ -67,7 +60,7 @@ export class FileCollector {
   }
 
   private async collectFilePaths(): Promise<string[]> {
-    const fileList: string[] = [];
+    const files: string[] = [];
 
     const entries = await (() => {
       try {
@@ -86,21 +79,20 @@ export class FileCollector {
         continue;
       }
       
-      const fullPath = join(entry.parentPath, entry.name);
-      const relativePath = relative(this.rootDir, fullPath);
-      const pathSegments = relativePath.split(sep);
-
-      const ignored = pathSegments.some(segment => {
-        return this.ignore.has(segment);
-      });
-      if (ignored) {
-        continue;
-      }
-
-      fileList.push(fullPath);
+      const path = join(entry.parentPath, entry.name);
+      files.push(path);
     }
 
-    return fileList;
+    return files;
+  }
+
+  private async filterFiles(files: string[]): Promise<string[]> {
+    const patterns = await this.ignoreConfig.execute();
+    const filtered = files.filter((file) => {
+      return !this.ignoreConfig.isIgnore(file, patterns);
+    });
+
+    return filtered;
   }
 
   private async readFilesWithLimit(fileList: string[]): Promise<FileData[]> {
@@ -141,7 +133,7 @@ export class FileCollector {
   }
 
   private async readSingleFile(filePath: string): Promise<FileData | null> {
-    const extention = extname(filePath);
+    const extension = extname(filePath);
 
     try {
       const binary = await this.isBinaryFile(filePath);
@@ -158,7 +150,7 @@ export class FileCollector {
         return readFile(filePath, "utf-8");
       })();
 
-      return { filePath, extension: extention, content, binary };
+      return { filePath, extension, content, binary };
     } catch (error) {
       if (this.showProgress) {
         console.error(`⚠️  Ошибка чтения ${filePath}: ${(error as Error).message}`);
